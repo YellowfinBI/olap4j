@@ -92,6 +92,9 @@ class DeferredNamedListImpl<T extends Named>
                 // TODO: fetch metadata on getCollection() method, so we
                 // can't get an exception while traversing the list
                 throw new RuntimeException(e);
+            } catch (RuntimeException e) {
+               state = State.NEW;
+               throw e;
             }
             // fall through
         case POPULATED:
