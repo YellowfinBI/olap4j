@@ -44,6 +44,8 @@ interface MetadataReader {
     XmlaOlap4jMember lookupMemberByUniqueName(
         String memberUniqueName)
         throws OlapException;
+    
+    boolean isMemberCached(String memberUniqueName);
 
     /**
      * Looks up a list of members by their unique name and writes the results
