@@ -578,6 +578,10 @@ abstract class XmlaOlap4jCellSet implements CellSet {
                     hierarchy = hierarchy1;
                     break;
                 }
+                if (hierarchy1.getUniqueName().equals("[" + hierarchyName + "]")) {
+                    hierarchy = hierarchy1;
+                    break;
+                }
             }
             if (hierarchy == null) {
                 throw getHelper().createException(
