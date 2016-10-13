@@ -285,7 +285,7 @@ class XmlaOlap4jCube implements Cube, Named
         }
 
         public void lookupMembersByUniqueName(
-            List<String> memberUniqueNames,
+            Collection<String> memberUniqueNames,
             Map<String, XmlaOlap4jMember> memberMap) throws OlapException
         {
             metadataReader.lookupMembersByUniqueName(
@@ -514,7 +514,7 @@ class XmlaOlap4jCube implements Cube, Named
         }
 
         public void lookupMembersByUniqueName(
-            List<String> memberUniqueNames,
+            Collection<String> memberUniqueNames,
             Map<String, XmlaOlap4jMember> memberMap) throws OlapException
         {
             if (olap4jSchema.olap4jCatalog.olap4jDatabaseMetaData
@@ -535,7 +535,7 @@ class XmlaOlap4jCube implements Cube, Named
          * @throws OlapException Gets thrown for communication errors
          */
         private void mondrianMembersLookup(
-            List<String> memberUniqueNames,
+            Collection<String> memberUniqueNames,
             Map<String, XmlaOlap4jMember> memberMap) throws OlapException
         {
             final XmlaOlap4jConnection.Context context =
@@ -570,7 +570,7 @@ class XmlaOlap4jCube implements Cube, Named
          * @throws OlapException Gets thrown for communication errors
          */
         private void genericMembersLookup(
-            List<String> memberUniqueNames,
+            Collection<String> memberUniqueNames,
             Map<String, XmlaOlap4jMember> memberMap) throws OlapException
         {
             // Iterates through member names

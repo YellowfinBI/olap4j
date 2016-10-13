@@ -35,6 +35,7 @@ class XmlaOlap4jSchema implements Schema, Named {
     final XmlaOlap4jCatalog olap4jCatalog;
     private final String name;
     final NamedList<XmlaOlap4jCube> cubes;
+    final XmlaOlap4jConnection.Context context; 
     private final NamedList<XmlaOlap4jDimension> sharedDimensions;
 
     XmlaOlap4jSchema(
@@ -56,8 +57,7 @@ class XmlaOlap4jSchema implements Schema, Named {
         final XmlaOlap4jCube sharedCube =
             new XmlaOlap4jCube(this, "", "", "");
 
-        final XmlaOlap4jConnection.Context context =
-            new XmlaOlap4jConnection.Context(
+        context = new XmlaOlap4jConnection.Context(
                 olap4jCatalog.olap4jDatabaseMetaData.olap4jConnection,
                 olap4jCatalog.olap4jDatabaseMetaData,
                 olap4jCatalog,
@@ -112,6 +112,28 @@ class XmlaOlap4jSchema implements Schema, Named {
         return Olap4jUtil.cast(sharedDimensions);
     }
 
+    public Cube getCube(String cubeName) {
+    	
+    	 String[] restrictions = {
+                 "CATALOG_NAME", olap4jCatalog.getName(),
+                 "SCHEMA_NAME", getName(),
+                 "CUBE_NAME", cubeName
+             };
+    	
+    	 
+    	 
+    	 List<Cube> l = Olap4jUtil.cast(new DeferredNamedListImpl<XmlaOlap4jCube>(
+                XmlaOlap4jConnection.MetadataRequest.MDSCHEMA_CUBES,
+                context,
+                new XmlaOlap4jConnection.CubeHandler(),
+                restrictions));
+
+         if (l.isEmpty()) return null;
+         
+         return l.get(0);
+    	
+    }
+    
     public Collection<Locale> getSupportedLocales() throws OlapException {
         return Collections.emptyList();
     }

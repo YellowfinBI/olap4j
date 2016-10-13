@@ -23,6 +23,7 @@ import org.olap4j.mdx.*;
 
 import java.io.StringWriter;
 import java.sql.*;
+import java.util.Map;
 import java.util.concurrent.*;
 
 /**
@@ -34,6 +35,7 @@ import java.util.concurrent.*;
  */
 abstract class XmlaOlap4jStatement implements OlapStatement {
     final XmlaOlap4jConnection olap4jConnection;
+    Map<String, Object> cachingMap;
     private boolean closed;
 
     /**
@@ -446,6 +448,14 @@ abstract class XmlaOlap4jStatement implements OlapStatement {
         ParseTreeWriter parseTreeWriter = new ParseTreeWriter(sw);
         node.unparse(parseTreeWriter);
         return sw.toString();
+    }
+    
+    public void setCachingMap(Map<String, Object> memberCacheMap) {
+    	this.cachingMap = memberCacheMap;
+    }
+    
+    public Map<String,Object> getCachingMap() {
+    	return cachingMap;
     }
 }
 

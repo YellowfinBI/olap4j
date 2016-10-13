@@ -57,7 +57,7 @@ interface MetadataReader {
      * @throws org.olap4j.OlapException if error occurs
      */
     void lookupMembersByUniqueName(
-        List<String> memberUniqueNames,
+        Collection<String> memberUniqueNames,
         Map<String, XmlaOlap4jMember> memberMap)
         throws OlapException;
 

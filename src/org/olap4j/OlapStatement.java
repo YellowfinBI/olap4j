@@ -17,10 +17,12 @@
 */
 package org.olap4j;
 
+import org.olap4j.driver.xmla.XmlaOlap4jMember;
 import org.olap4j.mdx.SelectNode;
 
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Map;
 
 /**
  * Object used for statically executing an MDX statement and returning a
@@ -99,6 +101,13 @@ public interface OlapStatement extends Statement, OlapWrapper {
         CellSetListener.Granularity granularity,
         CellSetListener listener)
         throws OlapException;
+    
+    
+    void setCachingMap(Map<String, Object> memberCacheMap);
+    
+ 
+    Map<String,Object> getCachingMap();
+    
 }
 
 // End OlapStatement.java
