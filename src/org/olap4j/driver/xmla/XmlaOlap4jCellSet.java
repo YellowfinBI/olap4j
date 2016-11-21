@@ -200,9 +200,9 @@ abstract class XmlaOlap4jCellSet implements CellSet {
         // may use too much memory. This is an unresolved issue.
         final MetadataReader metadataReader =
             metaData.cube.getMetadataReader();
-        final Map<String, XmlaOlap4jMember> memberMap =
-            new HashMap<String, XmlaOlap4jMember>();
-        List<String> uniqueNames = new ArrayList<String>();
+        Map<String, XmlaOlap4jMember> memberMap = new HashMap<String, XmlaOlap4jMember>();   
+        
+        Set<String> uniqueNames = new HashSet<String>();
         for (Element axisNode : findChildren(axesNode, MDDATASET_NS, "Axis")) {
             final Element tuplesNode =
                 findChild(axisNode, MDDATASET_NS, "Tuples");
@@ -219,9 +219,32 @@ abstract class XmlaOlap4jCellSet implements CellSet {
             }
         }
 
-        boolean lazyMemberLookup = Boolean.getBoolean("org.olap4j.driver.xmla.XmlaOlap4jCellSet.lazyMemberLookup");
+        Map<String, Object> externalMap = olap4jStatement.getCachingMap();
         
-        if (lazyMemberLookup) {
+        boolean lazyMemberLookup = Boolean.getBoolean("org.olap4j.driver.xmla.XmlaOlap4jCellSet.lazyMemberLookup");
+        boolean externalMemberCaching = Boolean.getBoolean("org.olap4j.driver.xmla.XmlaOlap4jCellSet.externalMemberCache");
+        
+        if (externalMemberCaching && externalMap!=null) {
+        	
+        	String cubeName = metaData.cube.getUniqueName();
+        	Set<String> names = new HashSet<String>();
+        	names.addAll(uniqueNames);
+        	
+        	for (String uname: names) {
+        		if (externalMap.containsKey(cubeName + "| " + uname)) {
+        			memberMap.put(uname, (XmlaOlap4jMember) externalMap.get(uname));
+        			names.remove(names);
+        		}
+        	}
+        	
+        	if (!names.isEmpty()) {
+        		    metadataReader.lookupMembersByUniqueName(names, memberMap);
+        		    for (String uname: names) {
+        		    	externalMap.put(cubeName + "| " + uname, memberMap.get(uname));
+        		    }
+        	}
+        	
+        } else if (lazyMemberLookup) {
 
            // Lazy loading of members
            // Fetch any members that are already cached from the metadata reader
@@ -431,7 +454,7 @@ abstract class XmlaOlap4jCellSet implements CellSet {
         final String cubeName = gatherText(cubeNameNode);
 
         XmlaOlap4jCube cube =
-            lookupCube(
+            findCube(
                 olap4jStatement.olap4jConnection.olap4jDatabaseMetaData,
                 cubeName);
         if (cube == null) {
@@ -558,6 +581,16 @@ abstract class XmlaOlap4jCellSet implements CellSet {
         }
         return null;
     }
+    
+    private XmlaOlap4jCube findCube(
+            XmlaOlap4jDatabaseMetaData databaseMetaData,
+            String cubeName) throws OlapException
+        {
+            
+    	   return (XmlaOlap4jCube) databaseMetaData.olap4jConnection.getOlapSchema().getCube(cubeName);
+    	
+        }
+    
 
     /**
      * Looks up a hierarchy in a cube with a given name or, failing that, a
@@ -1557,11 +1590,24 @@ abstract class XmlaOlap4jCellSet implements CellSet {
 
         private void loadMember() {
            
+           Map<String, Object> externalCache = cellSet.olap4jStatement.getCachingMap();
+     	   boolean externalMemberCaching = externalCache!=null && Boolean.getBoolean("org.olap4j.driver.xmla.XmlaOlap4jCellSet.externalMemberCache");
+     	   String cubeName = cellSet.metaData.cube.getUniqueName(); 
+     	   
+           if (externalMemberCaching && member == null) {
+        	   if (externalMemberCaching && externalCache!=null) {
+        		   this.member = (XmlaOlap4jMemberBase) externalCache.get(cubeName + "|" + memberUniqueName);
+        	   } 
+           }
+        	
            if (member == null) {
               
               try {
                  MetadataReader metadataReader = cellSet.metaData.cube.getMetadataReader();
                  this.member = metadataReader.lookupMemberByUniqueName(memberUniqueName);
+                 if (externalMemberCaching && member !=null) {
+                	 externalCache.put(cubeName + "|" + memberUniqueName, this.member);
+                 }
               } catch (OlapException e) {
                  throw new RuntimeException(e);
               }

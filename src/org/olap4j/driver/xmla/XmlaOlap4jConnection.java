@@ -855,6 +855,14 @@ abstract class XmlaOlap4jConnection implements OlapConnection {
             }
         }
         handler.sortList(list);
+        if (DEBUG) {
+	        System.out.println("Populate List: " + metadataRequest + " ");
+	        System.out.print("Restrictions: ");
+	        for (Object c : restrictions) {
+	        	System.out.print(" " + c.toString() + " ");
+	        }
+	        System.out.println();	
+        }
     }
 
     /**

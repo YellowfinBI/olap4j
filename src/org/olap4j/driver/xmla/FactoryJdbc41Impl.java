@@ -242,6 +242,8 @@ class FactoryJdbc41Impl implements Factory {
         public boolean isCloseOnCompletion() throws SQLException {
             throw new UnsupportedOperationException();
         }
+        
+     
     }
 
     private static class XmlaOlap4jDatabaseMetaDataJdbc41

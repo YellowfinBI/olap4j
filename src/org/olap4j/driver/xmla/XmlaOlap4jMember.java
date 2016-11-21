@@ -37,7 +37,7 @@ import java.util.*;
  * @author jhyde
  * @since Dec 5, 2007
  */
-class XmlaOlap4jMember
+public class XmlaOlap4jMember
     extends XmlaOlap4jElement
     implements XmlaOlap4jMemberBase, Member, Named
 {

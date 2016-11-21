@@ -98,6 +98,8 @@ public interface Schema {
      * @throws OlapException if database error occurs
      */
     Collection<Locale> getSupportedLocales() throws OlapException;
+    
+    Cube getCube(String cubeName);
 }
 
 // End Schema.java
