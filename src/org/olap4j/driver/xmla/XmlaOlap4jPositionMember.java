@@ -40,7 +40,7 @@ import java.util.*;
  * @author jhyde
  * @since Dec 7, 2007
  */
-class XmlaOlap4jPositionMember
+public class XmlaOlap4jPositionMember
     implements XmlaOlap4jMemberBase
 {
     private final XmlaOlap4jMemberBase member;
@@ -304,15 +304,22 @@ class XmlaOlap4jPositionMember
         }
 
         public Set<K> keySet() {
-            throw new UnsupportedOperationException("need to implement");
+            Set<K> keySet = new HashSet<K>(next.keySet());
+            keySet.addAll(map.keySet());
+            return keySet;
         }
 
         public Collection<V> values() {
-            throw new UnsupportedOperationException("need to implement");
+            Collection<V> values = new ArrayList<V>(map.values());
+            values.addAll(next.values());
+            return values;
         }
 
         public Set<Entry<K, V>> entrySet() {
-            throw new UnsupportedOperationException("need to implement");
+        	Set entrySet = new HashSet();
+        	entrySet.addAll(next.entrySet());
+            entrySet.addAll(map.entrySet());
+            return entrySet;
         }
     }
 }

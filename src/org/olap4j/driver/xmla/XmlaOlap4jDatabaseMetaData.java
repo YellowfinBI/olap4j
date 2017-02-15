@@ -1055,17 +1055,40 @@ abstract class XmlaOlap4jDatabaseMetaData implements OlapDatabaseMetaData {
         String memberUniqueName,
         String propertyNamePattern) throws OlapException
     {
-        return getMetadata(
-            XmlaOlap4jConnection.MetadataRequest.MDSCHEMA_PROPERTIES,
-            "CATALOG_NAME", catalog,
-            "SCHEMA_NAME", wildcard(schemaPattern),
-            "CUBE_NAME", wildcard(cubeNamePattern),
-            "DIMENSION_UNIQUE_NAME", dimensionUniqueName,
-            "HIERARCHY_UNIQUE_NAME", hierarchyUniqueName,
-            "LEVEL_UNIQUE_NAME", levelUniqueName,
-            "MEMBER_UNIQUE_NAME", memberUniqueName,
-            "PROPERTY_NAME", wildcard(propertyNamePattern));
+        return getProperties(
+        		catalog, 
+        		schemaPattern, 
+        		cubeNamePattern, 
+        		dimensionUniqueName, 
+        		hierarchyUniqueName, 
+        		levelUniqueName, 
+        		memberUniqueName, 
+        		propertyNamePattern, 
+        		true);
     }
+    
+    public ResultSet getProperties(
+            String catalog,
+            String schemaPattern,
+            String cubeNamePattern,
+            String dimensionUniqueName,
+            String hierarchyUniqueName,
+            String levelUniqueName,
+            String memberUniqueName,
+            String propertyNamePattern, 
+            boolean useWildcards) throws OlapException
+        {
+            return getMetadata(
+                XmlaOlap4jConnection.MetadataRequest.MDSCHEMA_PROPERTIES,
+                "CATALOG_NAME", catalog,
+                "SCHEMA_NAME", useWildcards ? wildcard(schemaPattern) : schemaPattern,
+                "CUBE_NAME", useWildcards ? wildcard(cubeNamePattern) : cubeNamePattern,
+                "DIMENSION_UNIQUE_NAME", dimensionUniqueName,
+                "HIERARCHY_UNIQUE_NAME", hierarchyUniqueName,
+                "LEVEL_UNIQUE_NAME", levelUniqueName,
+                "MEMBER_UNIQUE_NAME", memberUniqueName,
+                "PROPERTY_NAME", useWildcards ? wildcard(propertyNamePattern) : propertyNamePattern);
+        }
 
     public String getMdxKeywords() throws OlapException {
         final XmlaOlap4jConnection.MetadataRequest metadataRequest =

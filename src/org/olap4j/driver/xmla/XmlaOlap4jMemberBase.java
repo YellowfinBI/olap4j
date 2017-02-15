@@ -50,10 +50,7 @@ interface XmlaOlap4jMemberBase
      */
     XmlaOlap4jCatalog getCatalog();
 
-    /**
-     * Returns the set of property values, keyed by property.
-     */
-    Map<Property, Object> getPropertyValueMap();
+  
 }
 
 // End XmlaOlap4jMemberBase.java

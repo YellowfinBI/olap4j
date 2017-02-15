@@ -321,6 +321,17 @@ public interface OlapDatabaseMetaData extends DatabaseMetaData, OlapWrapper {
         String levelUniqueName,
         String memberUniqueName,
         String propertyNamePattern) throws OlapException;
+    
+    ResultSet getProperties(
+            String catalog,
+            String schemaPattern,
+            String cubeNamePattern,
+            String dimensionUniqueName,
+            String hierarchyUniqueName,
+            String levelUniqueName,
+            String memberUniqueName,
+            String propertyNamePattern,
+            boolean useWildcards) throws OlapException;
 
     /**
      * Retrieves a comma-separated list of all of this database's MDX keywords.

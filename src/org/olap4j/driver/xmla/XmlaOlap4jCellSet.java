@@ -223,46 +223,52 @@ abstract class XmlaOlap4jCellSet implements CellSet {
         
         boolean lazyMemberLookup = Boolean.getBoolean("org.olap4j.driver.xmla.XmlaOlap4jCellSet.lazyMemberLookup");
         boolean externalMemberCaching = Boolean.getBoolean("org.olap4j.driver.xmla.XmlaOlap4jCellSet.externalMemberCache");
+        boolean useSimpleResultSet = Boolean.getBoolean("org.olap4j.driver.xmla.XmlaOlap4jCellSet.useSimpleResultSet");
         
-        if (externalMemberCaching && externalMap!=null) {
+        if (useSimpleResultSet) {
         	
-        	String cubeName = metaData.cube.getUniqueName();
-        	Set<String> names = new HashSet<String>();
-        	names.addAll(uniqueNames);
         	
-        	for (String uname: names) {
-        		if (externalMap.containsKey(cubeName + "| " + uname)) {
-        			memberMap.put(uname, (XmlaOlap4jMember) externalMap.get(uname));
-        			names.remove(names);
-        		}
-        	}
-        	
-        	if (!names.isEmpty()) {
-        		    metadataReader.lookupMembersByUniqueName(names, memberMap);
-        		    for (String uname: names) {
-        		    	externalMap.put(cubeName + "| " + uname, memberMap.get(uname));
-        		    }
-        	}
-        	
-        } else if (lazyMemberLookup) {
+        
+        } else if (externalMemberCaching && externalMap!=null) {
+	        	
+	    	String cubeName = metaData.cube.getUniqueName();
+	    	Set<String> names = new HashSet<String>();
+	    	names.addAll(uniqueNames);
+	    	
+	    	for (String uname: names) {
+	    		if (externalMap.containsKey(cubeName + "| " + uname)) {
+	    			memberMap.put(uname, (XmlaOlap4jMember) externalMap.get(uname));
+	    			names.remove(names);
+	    		}
+	    	}
+	    	
+	    	if (!names.isEmpty()) {
+	    		    metadataReader.lookupMembersByUniqueName(names, memberMap);
+	    		    for (String uname: names) {
+	    		    	externalMap.put(cubeName + "| " + uname, memberMap.get(uname));
+	    		    }
+	    	}
+	    	
+	    } else if (lazyMemberLookup) {
+	
+	       // Lazy loading of members
+	       // Fetch any members that are already cached from the metadata reader
+	       // For non-cached members we will create a LazyMember object below
+	       for (String uname: uniqueNames) {
+	          if (metadataReader.isMemberCached(uname)) {
+	             memberMap.put(uname, metadataReader.lookupMemberByUniqueName(uname));
+	          }
+	       }
+	
+	    } else {
+	
+	       // Fetch all members on all axes. Hopefully it can all be done in one
+	       // round trip, or they are in cache already.
+	       metadataReader.lookupMembersByUniqueName(uniqueNames, memberMap);
+	
+	    }
 
-           // Lazy loading of members
-           // Fetch any members that are already cached from the metadata reader
-           // For non-cached members we will create a LazyMember object below
-           for (String uname: uniqueNames) {
-              if (metadataReader.isMemberCached(uname)) {
-                 memberMap.put(uname, metadataReader.lookupMemberByUniqueName(uname));
-              }
-           }
-
-        } else {
-
-           // Fetch all members on all axes. Hopefully it can all be done in one
-           // round trip, or they are in cache already.
-           metadataReader.lookupMembersByUniqueName(uniqueNames, memberMap);
-
-        }
-
+        
         // Second pass, populate the axis.
         final Map<Property, Object> propertyValues =
             new HashMap<Property, Object>();
@@ -296,7 +302,13 @@ abstract class XmlaOlap4jCellSet implements CellSet {
                             stringElement(memberNode, "Caption");
                         final int lnum = integerElement(memberNode, "LNum");
 
-                        if (lazyMemberLookup) {
+                        if (useSimpleResultSet) {
+                        	
+                        	 final String levelUniqueName =
+                                     stringElement(memberNode, "LName");
+                             member = new XmlaOlap4jLazyMember(this, hierarchyName, levelUniqueName, lnum, caption, uname, true);	
+                     	                                      
+                        } else if (lazyMemberLookup) {
 
                           // Create a LazyMember object
                           final String levelUniqueName =
@@ -1558,6 +1570,9 @@ abstract class XmlaOlap4jCellSet implements CellSet {
         private final String caption;
         private final String memberUniqueName;
         
+        private boolean disableLoading;
+        private Hierarchy hierarchy;
+        
         private XmlaOlap4jMemberBase member = null;
 
         XmlaOlap4jLazyMember(
@@ -1574,7 +1589,26 @@ abstract class XmlaOlap4jCellSet implements CellSet {
             this.levelNum = levelNum;
             this.caption = caption;
             this.memberUniqueName = memberUniqueName;
+            this.disableLoading = false;
         }
+        
+        XmlaOlap4jLazyMember(
+                XmlaOlap4jCellSet cellSet,
+                String hierarchyUniqueName,
+                String levelUniqueName,
+                int levelNum,
+                String caption,
+                String memberUniqueName,
+                boolean disableLoading)
+            {
+                this.cellSet = cellSet;
+                this.hierarchyUniqueName = hierarchyUniqueName;
+                this.levelUniqueName = levelUniqueName;
+                this.levelNum = levelNum;
+                this.caption = caption;
+                this.memberUniqueName = memberUniqueName;
+                this.disableLoading = disableLoading;
+            }
 
         public final XmlaOlap4jCube getCube() {
             return cellSet.metaData.cube;
@@ -1588,8 +1622,14 @@ abstract class XmlaOlap4jCellSet implements CellSet {
             return getCube().olap4jSchema.olap4jCatalog;
         }
 
+        public final void disableLoading() {
+            this.disableLoading = true;
+        }
+        
         private void loadMember() {
            
+           if (disableLoading) return;	
+        	
            Map<String, Object> externalCache = cellSet.olap4jStatement.getCachingMap();
      	   boolean externalMemberCaching = externalCache!=null && Boolean.getBoolean("org.olap4j.driver.xmla.XmlaOlap4jCellSet.externalMemberCache");
      	   String cubeName = cellSet.metaData.cube.getUniqueName(); 
@@ -1662,6 +1702,15 @@ abstract class XmlaOlap4jCellSet implements CellSet {
 
         public Hierarchy getHierarchy() {
            loadMember();
+           if (member==null) {
+        	   if (hierarchy!=null) return hierarchy;
+        	   try {
+        		   hierarchy = cellSet.lookupHierarchy(cellSet.metaData.cube, hierarchyUniqueName);
+        		   return hierarchy;
+        	   } catch (OlapException e) {
+                   throw new RuntimeException(e);
+               }
+           }
            return member.getHierarchy();
         }
 

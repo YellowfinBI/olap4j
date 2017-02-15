@@ -21,6 +21,7 @@ import org.olap4j.OlapException;
 import org.olap4j.mdx.ParseTreeNode;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * <code>Member</code> is a data value in an OLAP Dimension.
@@ -315,6 +316,14 @@ public interface Member extends MetadataElement {
      */
     Member getDataMember();
 
+    
+    
+    /**
+     * Returns the set of property values, keyed by property.
+     */
+    Map<Property, Object> getPropertyValueMap();
+    
+    
     /**
      * Enumeration of tree operations which can be used when querying
      * members.
@@ -401,6 +410,8 @@ public interface Member extends MetadataElement {
         public int xmlaOrdinal() {
             return xmlaOrdinal;
         }
+        
+     
     }
 }
 
